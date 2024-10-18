@@ -1,0 +1,1 @@
+\COPY (SELECT project_title, short_description, long_description, purpose_code FROM crs_current WHERE year > 2017 AND year < 2023 AND category = 10) TO 'large_input/crs_text_2018_2022.csv' WITH CSV HEADER;
