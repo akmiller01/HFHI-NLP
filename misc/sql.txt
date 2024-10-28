@@ -1,3 +1,7 @@
+# Experiments
 \COPY (SELECT project_title, short_description, long_description, purpose_code FROM crs_current WHERE year > 2017 AND year < 2023 AND category = 10) TO 'large_input/crs_text_2018_2022.csv' WITH CSV HEADER;
 
 \COPY (SELECT project_title, short_description, long_description, purpose_name FROM crs_current WHERE year = 2022 AND category = 10 AND (project_title ~* '\yhousing\y|\yinformal settlement\y|\yinformal settlements\y|\yslum\y|\yslums\y|\yshelter\y|\yshelters\y' OR short_description ~* '\yhousing\y|\yinformal settlement\y|\yinformal settlements\y|\yslum\y|\yslums\y|\yshelter\y|\yshelters\y' OR long_description ~* '\yhousing\y|\yinformal settlement\y|\yinformal settlements\y|\yslum\y|\yslums\y|\yshelter\y|\yshelters\y')) TO 'large_input/test_keywords_2022.csv' WITH CSV HEADER;
+
+# Analysis
+\COPY (SELECT * FROM crs_current WHERE year >= 2018 AND year <=2022 AND category = 10 AND purpose_code in (16030, 16040)) TO 'large_input/oda_housing_sectors_2018_2022.csv' WITH CSV HEADER;
