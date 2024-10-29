@@ -15,6 +15,11 @@ iati = subset(iati, x_sector_code %in% c("16030", "16040"))
 iati[,c("title_narrative", "description_narrative", "transaction_description_narrative")] = NULL
 gc()
 
+# Correction for missing reporting_org_ref, and nonbreaking space
+iati$reporting_org_ref[which(startsWith(iati$iati_identifier,"GB-CHC-294329"))] = "GB-CHC-294329"
+iati$reporting_org_ref[which(startsWith(iati$iati_identifier,"FR-6"))] = "FR-6"
+iati$reporting_org_ref = str_trim(iati$reporting_org_ref)
+
 oecd_donor_mapping = fread('input/iati_donor_mapping.csv')
 oecd_donor_mapping = subset(oecd_donor_mapping, !is.na(`Donor code`))
 # Account for splitting
@@ -38,6 +43,18 @@ if(length(duplicated_indicies) > 0){
   stopifnot(format(pre_sum, scientific=F) == format(post_sum, scientific=F))
 }
 
+# Correction for World Bank publisher mapping to IDA Donor Code
+wb = subset(iati, reporting_org_ref=="44000")
+wb = subset(wb, grepl("International Development Association", funding_orgs))
+nonwb = subset(iati, reporting_org_ref!="44000")
+iati = rbind(wb, nonwb)
+
+# Remove non-core funding for FAO
+fao = subset(iati, reporting_org_ref=="XM-DAC-41301")
+fao = subset(fao, grepl("Food and Agriculture Organization (FAO)", funding_orgs, fixed=T))
+nonfao = subset(iati, reporting_org_ref!="XM-DAC-41301")
+iati = rbind(fao, nonfao)
+
 iati = subset(iati, !is.na(`Donor code`))
 iati$sector_code = iati$x_sector_code
 iati$x_transaction_value_usd = iati$x_transaction_value_usd / 1000000
@@ -55,15 +72,15 @@ iati_agg$recipient_iso2_code = NULL
 iati_agg$sector_code = as.character(iati_agg$sector_code)
 iati_agg$donor_name = stringr::str_replace_all(iati_agg$donor_name, "\\h", " ") # Replace horizontal space
 
+crs$sector_code = crs$purpose_code
 crs_agg = data.table(crs)[,.(usd_disbursement_crs=sum(usd_disbursement, na.rm=T)),by=.(
-  donor_code, donor_name, year, recipient_iso3_code, purpose_code
+  donor_code, donor_name, year, recipient_iso3_code, sector_code
 )]
-crs_agg$sector_code = as.character(crs_agg$purpose_code)
-crs_agg$purpose_code = NULL
+crs_agg$sector_code = as.character(crs_agg$sector_code)
 
 dat = merge(crs_agg, iati_agg, all=T)
-dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
-dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
+# dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
+# dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
 
 dat$recipient_name = countrycode(dat$recipient_iso3_code, origin="iso3c", destination="country.name")
 dat = subset(dat, !is.na(recipient_name))

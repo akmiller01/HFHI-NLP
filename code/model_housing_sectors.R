@@ -13,12 +13,38 @@ rmse = function(vec1, vec2){
 }
 #### End setup ####
 
-# First attempt with all recipients and both sectors
+# Donor fit
 dat = fread("input/merged_crs_iati_housing_sectors.csv")
-dat = subset(dat, !is.na(sector_code))
+
+donor_fit_list = list()
+donor_fit_index = 1
+unique_donors = unique(dat$donor_name)
+missing_donors = c()
+for(i in 1:length(unique_donors)){
+  unique_donor = unique_donors[i]
+  na_subset = subset(dat,donor_name==unique_donor)
+  non_na_subset = subset(na_subset, !is.na(usd_disbursement_iati) & !is.na(usd_disbursement_crs))
+  if(nrow(non_na_subset) == 0){
+    message(unique_donor)
+    missing_donors = c(missing_donors, unique_donor)
+  }else{
+    fit = lm(usd_disbursement_crs~usd_disbursement_iati,data=na_subset)
+    alpha = summary(fit)$coefficients[1]
+    beta = summary(fit)$coefficients[2]
+    adj.r.squared = summary(fit)$adj.r.squared
+    tmp = data.frame(donor.name=unique_donor, alpha, beta, adj.r.squared, n=nrow(non_na_subset))
+    donor_fit_list[[donor_fit_index]] = tmp
+    donor_fit_index = donor_fit_index + 1
+  }
+}
+
+donor_fit = rbindlist(donor_fit_list)
+fwrite(donor_fit, "output/donor_fit.csv")
+
+dat = fread("input/merged_crs_iati_housing_sectors.csv")
 dat = dat[,.(
-  usd_disbursement_crs=sum(usd_disbursement_crs),
-  usd_disbursement_iati=sum(usd_disbursement_iati)
+  usd_disbursement_crs=sum(usd_disbursement_crs, na.rm=T),
+  usd_disbursement_iati=sum(usd_disbursement_iati, na.rm=T)
 ),
 by=.(year, sector_code, recipient_name, recipient_iso3_code)]
 codes = unique(dat[,c("recipient_name", "recipient_iso3_code")])
@@ -50,52 +76,13 @@ fit = lm(
     # Constant alpha
     usd_disbursement_iati+ # plus beta0 * IATI this year
     usd_disbursement_crs_t1+ # plus beta1 * CRS last year
-    delta_iati # plus beta2 * the absolute change in IATI from last year
+    delta_iati+ # plus beta2 * the absolute change in IATI from last year
+    recipient_name+ # Country fixed effects
+    sector_code+ # sector fixed effects
+    year # time period
     , data=dat_train)
 summary(fit)
 
-# Second attempt more aggregated
-dat = fread("input/merged_crs_iati_housing_sectors.csv")
-dat = subset(dat, !is.na(sector_code))
-dat = dat[,.(
-  usd_disbursement_crs=sum(usd_disbursement_crs),
-  usd_disbursement_iati=sum(usd_disbursement_iati)
-),
-by=.(year, sector_code)]
-
-dat.grid = expand.grid(
-  sector_code=unique(dat$sector_code),
-  year= unique(dat$year)
-)
-
-dat = merge(dat, dat.grid, all=T)
-dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
-dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
-
-dat = dat[order(dat$sector_code, dat$year)]
-dat[,"usd_disbursement_crs_t1":=shift(usd_disbursement_crs),by=.(sector_code)]
-dat[,"usd_disbursement_crs_t2":=shift(usd_disbursement_crs, n=2),by=.(sector_code)]
-dat[,"usd_disbursement_iati_t1":=shift(usd_disbursement_iati),by=.(sector_code)]
-dat[,"usd_disbursement_iati_t2":=shift(usd_disbursement_iati, n=2),by=.(sector_code)]
-
-dat$delta_iati = (dat$usd_disbursement_iati - dat$usd_disbursement_iati_t1)
-dat$delta_iati2 = (dat$usd_disbursement_iati - dat$usd_disbursement_iati_t2)
-
-dat$sector_code = factor(dat$sector_code)
-
-dat_train = subset(dat, year < 2022)
-dat_test = subset(dat, year == 2022)
-
-fit = lm(
-  usd_disbursement_crs~ # CRS this year is a function of
-    # Constant alpha
-    usd_disbursement_iati+ # plus beta0 * IATI this year
-    usd_disbursement_crs_t1+ # plus beta1 * CRS last year
-    usd_disbursement_crs_t2+ # plus beta2 * CRS two years ago
-    year+ # plus beta3 * time period
-    sector_code # plus sector fixed effects
-  , data=dat_train)
-summary(fit)
 tbl_regression(fit) %>% add_glance_source_note(include=c("nobs","adj.r.squared","p.value"))
 confidence = predict.lm(fit, newdata = dat_test, interval = "confidence")
 dat_test$usd_disbursement_iati_fit = confidence[,1]
@@ -110,6 +97,15 @@ abline(0,1)
 fit_rmse = rmse(dat_test$usd_disbursement_crs, dat_test$usd_disbursement_iati_fit)
 fit_rmse
 
+dat_agg = dat_test[,.(
+  usd_disbursement_crs=sum(usd_disbursement_crs),
+  usd_disbursement_iati_fit=sum(usd_disbursement_iati_fit),
+  usd_disbursement_iati=sum(usd_disbursement_iati)
+),
+by=.(year, recipient_name)]
+rmse(dat_agg$usd_disbursement_crs, dat_agg$usd_disbursement_iati)
+rmse(dat_agg$usd_disbursement_crs, dat_agg$usd_disbursement_iati_fit)
+
 dat_train = subset(dat, year < 2023)
 dat_predict = subset(dat, year < 2024)
 fit = lm(
@@ -117,9 +113,10 @@ fit = lm(
     # Constant alpha
     usd_disbursement_iati+ # plus beta0 * IATI this year
     usd_disbursement_crs_t1+ # plus beta1 * CRS last year
-    usd_disbursement_crs_t2+ # plus beta2 * CRS two years ago
-    year+ # plus beta3 * time period
-    sector_code # plus sector fixed effects
+    delta_iati+ # plus beta2 * the absolute change in IATI from last year
+    recipient_name+ # Country fixed effects
+    sector_code+ # sector fixed effects
+    year # time period
   , data=dat_train)
 summary(fit)
 confidence = predict.lm(fit, newdata = dat_predict, interval = "confidence")
