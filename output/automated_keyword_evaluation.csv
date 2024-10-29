@@ -1,0 +1,77 @@
+word,n,false_positive_rate,false_positives,true_positives
+housing,7551,68.61%,5181,2370
+shelter,5226,66.74%,3488,1738
+accommodation,1121,63.78%,715,406
+informal settlements,662,53.02%,351,311
+vivienda,476,35.08%,167,309
+alojamiento,786,60.81%,478,308
+viviendas,445,31.91%,142,303
+slums,579,60.97%,353,226
+slum,702,68.38%,480,222
+shelters,621,79.55%,494,127
+habitation,161,41.61%,66.9999999999999,94.0000000000001
+logement,243,65.84%,160,82.9999999999999
+abris,1022,93.15%,952,70.0000000000004
+refuge,455,84.84%,386,69.0000000000001
+abri,348,82.18%,286,62.0000000000001
+refugio,262,76.34%,200,62
+hébergement,744,91.94%,684,60.0000000000003
+logements,158,67.09%,106,52
+dwellings,81,37.04%,30,51
+informal settlement,127,64.57%,82.0000000000001,45
+refuges,109,61.47%,67,42
+habitations,68,39.71%,27,41
+human settlements,133,74.44%,99,34
+asentamientos humanos,49,34.69%,17,32
+albergue,55,50.91%,28,27
+asentamientos informales,49,46.94%,23,26
+human settlement,96,77.08%,74,22
+squatter,29,24.14%,7.00000000000001,22
+quartiers informels,31,32.26%,9.99999999999999,21
+asentamiento humano,26,23.08%,6.00000000000001,20
+bidonvilles,82,75.61%,62,20
+albergues,43,53.49%,23,20
+barrios marginales,45,57.78%,26,19
+dwelling,36,52.78%,19,17
+zakwaterowania,27,44.44%,12,15
+refugios,25,40.00%,10,15
+quartiers pauvres,26,53.85%,14,12
+zakwaterowanie,19,36.84%,7,12
+habitaciones,21,47.62%,10,11
+abrigo,40,75.00%,30,10
+schronienia,14,28.57%,4,10
+accommodations,73,87.67%,64,9.00000000000002
+favela,45,80.00%,36,9
+favelas,37,78.38%,29,7.99999999999999
+habitación,28,78.57%,22,5.99999999999999
+bidonville,16,68.75%,11,5
+hébergements,5,0.00%,0,5
+informal neighborhoods,6,33.33%,2,4
+habitação,6,33.33%,2,4
+alojamientos,6,33.33%,2,4
+asentamiento informal,5,20.00%,1,4
+chabolas,5,20.00%,1,4
+schronienie,4,25.00%,1,3
+residential complex,3,0.00%,0,3
+barrios informales,2,0.00%,0,2
+barrio marginal,10,80.00%,8,2
+shantytown,11,90.91%,10,1
+squatters,2,50.00%,1,1
+abitazione,2,50.00%,1,1
+residential complexes,1,0.00%,0,1
+unregulated settlements,1,0.00%,0,1
+habitat informel,1,0.00%,0,1
+quartier pauvre,1,0.00%,0,1
+abitazioni,1,0.00%,0,1
+alloggio,1,0.00%,0,1
+sistemazione,1,0.00%,0,1
+mieszkanie,1,0.00%,0,1
+nocleg,1,0.00%,0,1
+mieszkania,3,66.67%,2,0.999999999999999
+informal neighborhood,5,100.00%,5,0
+shantytowns,1,100.00%,1,0
+hebergement,5,100.00%,5,0
+quartier informel,1,100.00%,1,0
+insediamento informale,1,100.00%,1,0
+baraccopoli,8,100.00%,8,0
+noclegi,2,100.00%,2,0

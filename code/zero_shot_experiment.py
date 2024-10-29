@@ -15,7 +15,8 @@ def create_text_column(example):
 
 
 # Load data and make text col
-dataset = load_dataset('csv', data_files='large_input/test_keywords_2022.csv', split='train')
+dataset = pd.read_csv("large_input/full_crs_keyword_2018_2022.csv", dtype=str)
+dataset = Dataset.from_pandas(dataset, preserve_index=False)
 dataset = dataset.map(create_text_column, num_proc=8)
 
 # Prep model args
@@ -24,12 +25,11 @@ id2label = {i: label for i, label in enumerate(classes_verbalized)}
 label2id = {id2label[i]: i for i in id2label.keys()}
 
 # Set up classifier
-zeroshot_classifier = pipeline("zero-shot-classification", model="MoritzLaurer/deberta-v3-large-zeroshot-v1.1-all-33")
-hypothesis_template = "This example is {}"
+zeroshot_classifier = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
 
 # Test classifier
 def inference_classifier(example):
-    output = zeroshot_classifier(example['text'], classes_verbalized, hypothesis_template=hypothesis_template, multi_label=False)
+    output = zeroshot_classifier(example['text'], classes_verbalized, multi_label=False)
     example['zs_label'] = output['labels'][0]
     example['zs_score'] = output['scores'][0]
     return example
@@ -47,4 +47,4 @@ dataset_text = Dataset.from_pandas(dataset_text, preserve_index=False)
 dataset_text = dataset_text.map(inference_classifier)
 dataset_text = pd.DataFrame(dataset_text)
 dataset = pd.merge(dataset, dataset_text, on=text_cols, how="left")
-dataset.to_csv("large_input/test_keywords_2022_zs.csv")
+dataset.to_csv("large_input/full_crs_keyword_2018_2022_zs.csv")
