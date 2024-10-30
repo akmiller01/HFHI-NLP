@@ -2,19 +2,27 @@ lapply(c("data.table", "dplyr", "stringr", "tidyverse"), require, character.only
 setwd(dirname(getActiveDocumentContext()$path))
 setwd("../")
 
-dat = fread("large_input/full_crs_keyword_2018_2022_zs.csv")
-dat$false_positive = dat$zs_label == "other"
+data_source = "full_iati_keyword_2018_2023"
+# data_source = "full_crs_keyword_2018_2022"
+
+dat = fread(paste0("large_input/",data_source,"_zs_expanded_definitions.csv"))
+dat$false_positive = startsWith(dat$zs_label, "is primarily about other")
+
+mean(dat$false_positive)
 
 textual_cols_for_classification = c(
-  "project_title",
-  "short_description",
-  "long_description"
+  "title_narrative",
+  "description_narrative",
+  "transaction_description_narrative"
 )
+# textual_cols_for_classification = c(
+#   "project_title",
+#   "short_description",
+#   "long_description"
+# )
 
 dat = dat %>%
   unite(text, all_of(textual_cols_for_classification), sep=" ", na.rm=T, remove=F)
-
-mean(dat$false_positive)
 
 keywords = unique(fread("input/keywords.csv")$word)
 
@@ -41,6 +49,6 @@ for(word in keywords){
 }
 
 word_eval = rbindlist(word_list)
-fwrite(word_eval, "output/automated_keyword_evaluation.csv")
-fwrite(dat, "large_input/full_crs_keyword_2018_2022_zs_annotated.csv")
+fwrite(word_eval, "output/automated_keyword_evaluation_iati.csv")
+fwrite(dat, paste0("large_input/",data_source,"_zs_expanded_definitions_annotated.csv"))
 

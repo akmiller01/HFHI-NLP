@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 
 large_input
+.Rhistory

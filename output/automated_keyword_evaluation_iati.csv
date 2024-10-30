@@ -1,0 +1,57 @@
+word,n,false_positive_rate
+accommodation,3172,0.23203026481715
+accommodations,136,0.0808823529411765
+dwelling,242,0.198347107438017
+dwellings,189,0.206349206349206
+housing,26025,0.274812680115274
+residential complexes,39,0
+human settlement,98,0.0408163265306122
+human settlements,603,0.383084577114428
+informal neighborhood,5,0
+informal neighborhoods,162,0.91358024691358
+informal settlement,192,0.260416666666667
+informal settlements,4807,0.569169960474308
+unregulated settlements,7,0
+shelter,19604,0.0672821873087125
+shelters,6328,0.280657395701644
+shantytowns,12,0
+slum,3244,0.38501849568434
+slums,8114,0.242420507764358
+squatter,24,0
+squatters,5,0.2
+habitation,91,0.384615384615385
+habitations,184,0.418478260869565
+hebergement,1,0
+hébergement,173,0.0346820809248555
+hébergements,3,0
+logement,89,0.0674157303370787
+logements,48,0.291666666666667
+bidonvilles,7,0.571428571428571
+quartiers informels,7,0.285714285714286
+abri,4652,0.00451418744625967
+abris,693,0.10966810966811
+refuge,1320,0.115151515151515
+refuges,173,0.450867052023121
+wohnraum,35,0
+wohnung,1,0
+wohnungen,7,0
+informelle siedlung,1,0
+informelle siedlungen,1,0
+schutzräume,1,0
+unterkunft,2,0
+unterkünfte,5,0.4
+armenviertel,5,0
+abrigo,4,0
+abrigos,5,0
+refugio,62,0.5
+refugios,7,0
+favela,47,0.638297872340426
+favelas,95,0.263157894736842
+alojamiento,37,0.0810810810810811
+alojamientos,1,0
+vivienda,90,0.111111111111111
+viviendas,11,0.363636363636364
+asentamientos humanos,1,0
+asentamientos informales,7,0
+albergue,1,0
+albergues,2,0
