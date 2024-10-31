@@ -52,10 +52,11 @@ rotate_x_text_90 = theme(
 #### End chart setup ####
 
 # Load data
-crs = fread("large_input/oda_housing_sectors_2018_2022.csv")
+crs = fread("large_input/full_crs_keyword_2018_2022_zs_expanded_definitions_annotated.csv")
+crs = subset(crs, false_positive==F)
 crs = subset(crs, !endsWith(recipient_name, ", regional"))
 crs = subset(crs, !endsWith(recipient_name, ", unspecified"))
-iati = fread("input/modeled_crs_iati_housing_sectors.csv")
+iati = fread("input/modeled_crs_iati_keyword_search.csv")
 iati = subset(iati, year==2023)
 recip_codes = unique(crs[,c("recipient_name", "recipient_iso3_code")])
 iati$recipient_name_alt = iati$recipient_name
@@ -73,29 +74,23 @@ iati$usd_disbursement_crs_lwr = iati$usd_disbursement_crs_lwr * deflator_2023_to
 iati$usd_disbursement_crs_upr = iati$usd_disbursement_crs_upr * deflator_2023_to_2022
 
 
-code_map = c(
-  "16030"="Housing policy and administrative management",
-  "16040"="Low-cost housing"
-)
-iati$purpose_name = code_map[as.character(iati$sector_code)]
 iati$usd_disbursement_crs_lwr = pmax(0, iati$usd_disbursement_crs_lwr)
 iati$usd_disbursement_crs = pmax(0, iati$usd_disbursement_crs)
 
 
 # By disbursement year
-oda_by_year = crs[,.(usd_disbursement_deflated=sum(usd_disbursement_deflated, na.rm=T)), by=.(year, purpose_name)]
+oda_by_year = crs[,.(usd_disbursement_deflated=sum(usd_disbursement_deflated, na.rm=T)), by=.(year)]
 iati_by_year = iati[,.(
   usd_disbursement_deflated=sum(usd_disbursement_crs, na.rm=T),
   usd_disbursement_lwr=sum(usd_disbursement_crs_lwr, na.rm=T),
   usd_disbursement_upr=sum(usd_disbursement_crs_upr, na.rm=T)
-  ), by=.(purpose_name, year)]
+  ), by=.(year)]
 oda_by_year = rbindlist(list(oda_by_year, iati_by_year), fill=T)
 
-ggplot(oda_by_year, aes(x=year, y=usd_disbursement_deflated, group=purpose_name, fill=purpose_name)) +
-  geom_bar(stat="identity") +
-  scale_y_continuous(expand = c(0, 0), n.breaks=5, labels=dollar) +
+ggplot(oda_by_year, aes(x=year, y=usd_disbursement_deflated)) +
+  geom_bar(stat="identity", fill=master_blue) +
+  scale_y_continuous(expand = c(0, 0), n.breaks=6, labels=dollar) +
   scale_x_continuous(n.breaks = 6) +
-  scale_fill_manual(values=c(master_blue, master_green)) +
   expand_limits(y=c(0, max(oda_by_year$usd_disbursement_deflated*1.1))) +
   custom_style +
   labs(
@@ -104,13 +99,11 @@ ggplot(oda_by_year, aes(x=year, y=usd_disbursement_deflated, group=purpose_name,
     fill=""
   )
 ggsave(
-  filename="output/sector_year.png",
+  filename="output/keyword_year.png",
   height=5,
   width=8
 )
-oda_by_year_wide = dcast(oda_by_year, year~purpose_name, value.var="usd_disbursement_deflated")
-fwrite(oda_by_year_wide, "output/sector_year.csv")
-fwrite(iati_by_year, "output/sector_iati_conf_year.csv")
+fwrite(oda_by_year, "output/keyword_year.csv")
 
 # By donor
 oda_by_donor = crs[,.(usd_disbursement_deflated=sum(usd_disbursement_deflated, na.rm=T)), by=.(donor_name)]
@@ -126,7 +119,7 @@ donor_short_names["Inter-American Development Bank"] =
   "IDB"
 donor_short_names["Asian Development Bank"] = 
   "ADB"
-fwrite(oda_by_donor, "output/sector_by_donor.csv")
+fwrite(oda_by_donor, "output/keyword_by_donor.csv")
 oda_by_donor$donor_name = donor_short_names[oda_by_donor$donor_name]
 oda_by_donor$donor_name = factor(
   oda_by_donor$donor_name,
@@ -141,11 +134,11 @@ ggplot(oda_by_donor[1:10], aes(x=donor_name, y=usd_disbursement_deflated)) +
     y="ODA disbursements\n(constant 2022 US$ millions)",
     x="",
     color="",
-    title="Top 10 donors to current housing sectors\n(2018-2022)"
+    title="Top 10 donors to housing by keyword\n(2018-2022)"
   ) +
   rotate_x_text_45
 ggsave(
-  filename="output/sector_by_donor.png",
+  filename="output/keyword_by_donor.png",
   height=5,
   width=8
 )
@@ -157,7 +150,7 @@ crs_donor_type = merge(crs, donor_type, by="donor_name")
 oda_by_donor_type = crs_donor_type[,.(usd_disbursement_deflated=sum(usd_disbursement_deflated, na.rm=T)), by=.(donor_type)]
 oda_by_donor_type = oda_by_donor_type[order(-oda_by_donor_type$usd_disbursement_deflated),]
 
-fwrite(oda_by_donor_type, "output/sector_by_donor_type.csv")
+fwrite(oda_by_donor_type, "output/keyword_by_donor_type.csv")
 oda_by_donor_type$donor_type = factor(
   oda_by_donor_type$donor_type,
   levels=oda_by_donor_type$donor_type
@@ -171,11 +164,11 @@ ggplot(oda_by_donor_type, aes(x=donor_type, y=usd_disbursement_deflated)) +
     y="ODA disbursements\n(constant 2022 US$ millions)",
     x="",
     color="",
-    title="Current housing sector ODA by donor type\n(2018-2022)"
+    title="Keyword housing sector ODA by donor type\n(2018-2022)"
   ) +
   rotate_x_text_45
 ggsave(
-  filename="output/sector_by_donor_type.png",
+  filename="output/keyword_by_donor_type.png",
   height=5,
   width=8
 )
@@ -187,17 +180,20 @@ iati_by_recipient_year = iati[,.(
   usd_disbursement_lwr=sum(usd_disbursement_crs_lwr, na.rm=T),
   usd_disbursement_upr=sum(usd_disbursement_crs_upr, na.rm=T)
 ), by=.(year, recipient_name)]
+setdiff(oda_by_recipient_year$recipient_name, iati_by_recipient_year$recipient_name)
+setdiff(iati_by_recipient_year$recipient_name, oda_by_recipient_year$recipient_name)
+
 oda_by_recipient_year = rbindlist(list(oda_by_recipient_year, iati_by_recipient_year), fill=T)
-fwrite(iati_by_recipient_year, "output/sector_iati_conf_recip.csv")
+fwrite(iati_by_recipient_year, "output/keyword_iati_conf_recip.csv")
 oda_by_recipient = oda_by_recipient_year[,.(usd_disbursement_deflated=sum(usd_disbursement_deflated, na.rm=T)), by=.(recipient_name)]
 oda_by_recipient_type = oda_by_recipient
 
 oda_by_recipient = oda_by_recipient[order(-oda_by_recipient$usd_disbursement_deflated),]
 recipient_short_names = oda_by_recipient$recipient_name
 names(recipient_short_names) = oda_by_recipient$recipient_name
-recipient_short_names["West Bank and Gaza Strip"] =
-  "Palestine"
-fwrite(oda_by_recipient, "output/sector_by_recipient.csv")
+recipient_short_names["Syrian Arab Republic"] =
+  "Syria"
+fwrite(oda_by_recipient, "output/keyword_by_recipient.csv")
 oda_by_recipient$recipient_name = recipient_short_names[oda_by_recipient$recipient_name]
 oda_by_recipient$recipient_name = factor(
   oda_by_recipient$recipient_name,
@@ -212,11 +208,11 @@ ggplot(oda_by_recipient[1:10], aes(x=recipient_name, y=usd_disbursement_deflated
     y="ODA disbursements\n(constant 2022 US$ millions)",
     x="",
     color="",
-    title="Top 10 recipients of current housing sectors\n(2018-2023)"
+    title="Top 10 recipients of keyword housing sectors\n(2018-2023)"
   ) +
   rotate_x_text_45
 ggsave(
-  filename="output/sector_by_recipient.png",
+  filename="output/keyword_by_recipient.png",
   height=5,
   width=8
 )
@@ -229,7 +225,7 @@ oda_by_recipient_type = oda_by_recipient_type[,.(
 ), by=.(income_group_name)]
 
 oda_by_recipient_type = oda_by_recipient_type[order(-oda_by_recipient_type$usd_disbursement_deflated),]
-fwrite(oda_by_recipient_type, "output/sector_by_income.csv")
+fwrite(oda_by_recipient_type, "output/keyword_by_income.csv")
 oda_by_recipient_type$income_group_name = factor(
   oda_by_recipient_type$income_group_name,
   levels=oda_by_recipient_type$income_group_name
@@ -243,11 +239,11 @@ ggplot(oda_by_recipient_type, aes(x=income_group_name, y=usd_disbursement_deflat
     y="ODA disbursements\n(constant 2022 US$ millions)",
     x="",
     color="",
-    title="Current housing sector ODA by income group\n(2018-2023)"
+    title="Keyword housing sector ODA by income group\n(2018-2023)"
   ) +
   rotate_x_text_45
 ggsave(
-  filename="output/sector_by_income.png",
+  filename="output/keyword_by_income.png",
   height=5,
   width=8
 )
