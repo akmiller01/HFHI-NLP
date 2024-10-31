@@ -163,3 +163,4 @@ cython_debug/
 
 large_input
 .Rhistory
+output/housing_comp_map_files/

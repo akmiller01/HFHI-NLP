@@ -1,4 +1,4 @@
-lapply(c("data.table", "openxlsx"), require, character.only = T)
+lapply(c("data.table", "openxlsx", "rstudioapi"), require, character.only = T)
 setwd(dirname(getActiveDocumentContext()$path))
 setwd("../")
 
