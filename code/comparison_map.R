@@ -153,7 +153,7 @@ legend_format = labelFormat(
 m <- leaflet(world_nat) %>%
   addMapPane("Purpose", zIndex = 0) %>%
   addMapPane("Keyword", zIndex = 0) %>%
-  setView(25, 0, 2) %>%
+  setView(25, 0, 3) %>%
   addProviderTiles(
     providers$CartoDB.PositronNoLabels,
     options = pathOptions(pane = "Keyword"),
