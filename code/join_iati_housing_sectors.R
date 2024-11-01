@@ -10,6 +10,48 @@ setwd("../")
 #### End setup ####
 
 crs = fread("large_input/oda_housing_sectors_2010_2022.csv")
+
+region_codes = c(
+  "88",
+  "89",
+  "189",
+  "289",
+  "298",
+  "389",
+  "489",
+  "498",
+  "589",
+  "619",
+  "679",
+  "689",
+  "789",
+  "798",
+  "889",
+  "998",
+  "1027",
+  "1028",
+  "1029",
+  "1030",
+  "1031",
+  "1032",
+  "1033",
+  "1034",
+  "1035"
+)
+crs_regions = subset(crs, recipient_code %in% region_codes)
+region_iso3_codes = unique(crs_regions[,c("recipient_code", "recipient_iso3_code", "recipient_name")])
+unspecified = data.frame(recipient_code="998", recipient_iso3_code="DPGC_X", recipient_name="Bilateral, unspecified")
+region_iso3_codes = rbind(region_iso3_codes, unspecified)
+missing_regions = data.frame(
+  recipient_code=c("380", "889", "1027", "1028", "1029"),
+  recipient_iso3_code=c("A5_X", "O_X", "F3_X", "F5_X", "F7_X"),
+  recipient_name=c("Caribbean & Central America, regional", "Oceania, regional", "Eastern Africa, regional", "Middle Africa, regional", "Southern Africa, regional")
+)
+region_iso3_codes = rbind(region_iso3_codes, missing_regions)
+fwrite(region_iso3_codes, "input/region_mapping.csv")
+region_iso3_code_mapping = region_iso3_codes$recipient_iso3_code
+names(region_iso3_code_mapping) = region_iso3_codes$recipient_code
+
 iati = fread("large_input/iati_28102024.csv")
 iati = subset(iati, x_sector_code %in% c("16030", "16040"))
 iati[,c("title_narrative", "description_narrative", "transaction_description_narrative")] = NULL
@@ -67,6 +109,9 @@ iati_agg$recipient_iso3_code = countrycode(
   origin="iso2c", 
   destination="iso3c"
 )
+iati_agg$recipient_iso3_code[which(iati_agg$recipient_iso2_code=="XK")] = "XKV"
+iati_agg$recipient_iso3_code[which(iati_agg$recipient_iso2_code %in% names(region_iso3_code_mapping))] =
+  region_iso3_code_mapping[iati_agg$recipient_iso2_code[which(iati_agg$recipient_iso2_code %in% names(region_iso3_code_mapping))]]
 iati_agg = subset(iati_agg, !is.na(recipient_iso3_code))
 iati_agg$recipient_iso2_code = NULL
 iati_agg$sector_code = as.character(iati_agg$sector_code)
@@ -82,7 +127,7 @@ dat = merge(crs_agg, iati_agg, all=T)
 # dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
 # dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
 
-dat$recipient_name = countrycode(dat$recipient_iso3_code, origin="iso3c", destination="country.name")
-dat = subset(dat, !is.na(recipient_name))
+# dat$recipient_name = countrycode(dat$recipient_iso3_code, origin="iso3c", destination="country.name")
+# dat = subset(dat, !is.na(recipient_name))
 
 fwrite(dat, "input/merged_crs_iati_housing_sectors.csv")

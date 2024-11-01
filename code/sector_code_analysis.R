@@ -1,4 +1,4 @@
-lapply(c("data.table", "rstudioapi", "scales","ggplot2","scales","Hmisc","openxlsx"), require, character.only = T)
+lapply(c("data.table", "rstudioapi", "scales","ggplot2","scales","Hmisc","openxlsx", "countrycode"), require, character.only = T)
 setwd(dirname(getActiveDocumentContext()$path))
 setwd("../")
 
@@ -53,17 +53,14 @@ rotate_x_text_90 = theme(
 
 # Load data
 crs = fread("large_input/oda_housing_sectors_2018_2022.csv")
-crs = subset(crs, !endsWith(recipient_name, ", regional"))
-crs = subset(crs, !endsWith(recipient_name, ", unspecified"))
 iati = fread("input/modeled_crs_iati_housing_sectors.csv")
 iati = subset(iati, year==2023)
-recip_codes = unique(crs[,c("recipient_name", "recipient_iso3_code")])
-iati$recipient_name_alt = iati$recipient_name
-iati$recipient_name = NULL
+recip_codes = fread("input/oecd_recipient_codes.csv")
+region_codes = fread("input/region_mapping.csv")
+recip_codes = rbindlist(list(recip_codes, region_codes))
 iati = merge(iati, recip_codes, by="recipient_iso3_code", all.x=T)
-iati$recipient_name[which(is.na(iati$recipient_name))] = 
-  iati$recipient_name_alt[which(is.na(iati$recipient_name))]
-iati$recipient_name_alt = NULL
+missing_names = unique(iati$recipient_iso3_code[which(is.na(iati$recipient_name))])
+stopifnot({length(missing_names)==0})
 
 # Deflate
 deflators = read.xlsx("input/US$ deflators 2022 April 2024 WEO.xlsx", startRow=3)

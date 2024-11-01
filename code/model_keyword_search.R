@@ -46,22 +46,20 @@ dat = dat[,.(
   usd_disbursement_crs=sum(usd_disbursement_crs, na.rm=T),
   usd_disbursement_iati=sum(usd_disbursement_iati, na.rm=T)
 ),
-by=.(year, recipient_name, recipient_iso3_code)]
-codes = unique(dat[,c("recipient_name", "recipient_iso3_code")])
+by=.(year, recipient_iso3_code)]
 
 dat.grid = expand.grid(
   recipient_iso3_code=unique(dat$recipient_iso3_code),
   year= unique(dat$year)
   )
-dat.grid = merge(dat.grid, codes)
 
 dat = merge(dat, dat.grid, all=T)
 dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
 dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
 
-dat = dat[order(dat$recipient_name, dat$year)]
-dat[,"usd_disbursement_crs_t1":=shift(usd_disbursement_crs),by=.(recipient_name)]
-dat[,"usd_disbursement_iati_t1":=shift(usd_disbursement_iati),by=.(recipient_name)]
+dat = dat[order(dat$recipient_iso3_code, dat$year)]
+dat[,"usd_disbursement_crs_t1":=shift(usd_disbursement_crs),by=.(recipient_iso3_code)]
+dat[,"usd_disbursement_iati_t1":=shift(usd_disbursement_iati),by=.(recipient_iso3_code)]
 
 dat$delta_iati = (dat$usd_disbursement_iati - dat$usd_disbursement_iati_t1)
 

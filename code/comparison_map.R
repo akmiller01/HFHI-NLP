@@ -86,6 +86,7 @@ dat = merge(purpose_code_dat, keyword_dat, all=T,
             suffixes=c(".purpose", ".keyword"), by="iso_3")
 
 dat[is.na(dat)] = 0
+dat = subset(dat, iso_3 != "DPGC_X")
 
 # Reshape
 world_nat = geojsonio::geojson_read("shapefiles/simplified_adm0_polygons.json", what = "sp")
@@ -115,13 +116,13 @@ reds = c(
 
 quantile(dat$usd_disbursement_deflated.purpose, probs=c(0, 0.10, 0.20, 0.80, 0.90, 1), na.rm=T)
 purpose.bins = c(
-  0, 1, 10, 50, 100, 500, 1000, 1200
+  0, 1, 10, 50, 100, 500, 1000, 1500
 )
 purpose.pal <- colorBin(reds[6:13], domain = c(world_nat$usd_disbursement_deflated.purpose), bins = purpose.bins)
 
 quantile(dat$usd_disbursement_deflated.keyword, probs=c(0, 0.10, 0.20, 0.80, 0.90, 1), na.rm=T)
 keyword.bins = c(
-  0, 1, 10, 50, 100, 500, 1000, 1200
+  0, 1, 10, 50, 100, 500, 1000, 1500
 )
 keyword.pal <- colorBin(reds[6:13], domain = c(world_nat$usd_disbursement_deflated.keyword), bins = keyword.bins)
 

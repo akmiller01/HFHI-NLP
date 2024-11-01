@@ -10,6 +10,9 @@ setwd("../")
 #### End setup ####
 
 crs = fread("large_input/full_crs_keyword_2018_2022_zs_expanded_definitions_annotated.csv")
+region_iso3_codes = fread("input/region_mapping.csv")
+region_iso3_code_mapping = region_iso3_codes$recipient_iso3_code
+names(region_iso3_code_mapping) = region_iso3_codes$recipient_code
 crs = subset(crs, false_positive==F)
 
 iati = fread("large_input/full_iati_keyword_2018_2023_zs_expanded_definitions_annotated.csv")
@@ -68,6 +71,9 @@ iati_agg$recipient_iso3_code = countrycode(
   origin="iso2c", 
   destination="iso3c"
 )
+iati_agg$recipient_iso3_code[which(iati_agg$recipient_iso2_code=="XK")] = "XKV"
+iati_agg$recipient_iso3_code[which(iati_agg$recipient_iso2_code %in% names(region_iso3_code_mapping))] =
+  region_iso3_code_mapping[iati_agg$recipient_iso2_code[which(iati_agg$recipient_iso2_code %in% names(region_iso3_code_mapping))]]
 iati_agg = subset(iati_agg, !is.na(recipient_iso3_code))
 iati_agg$recipient_iso2_code = NULL
 iati_agg$donor_name = stringr::str_replace_all(iati_agg$donor_name, "\\h", " ") # Replace horizontal space
@@ -80,7 +86,7 @@ dat = merge(crs_agg, iati_agg, all=T)
 # dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
 # dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
 
-dat$recipient_name = countrycode(dat$recipient_iso3_code, origin="iso3c", destination="country.name")
-dat = subset(dat, !is.na(recipient_name))
+# dat$recipient_name = countrycode(dat$recipient_iso3_code, origin="iso3c", destination="country.name")
+# dat = subset(dat, !is.na(recipient_name))
 
 fwrite(dat, "input/merged_crs_iati_keyword_search.csv")

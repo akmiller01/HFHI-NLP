@@ -46,23 +46,21 @@ dat = dat[,.(
   usd_disbursement_crs=sum(usd_disbursement_crs, na.rm=T),
   usd_disbursement_iati=sum(usd_disbursement_iati, na.rm=T)
 ),
-by=.(year, sector_code, recipient_name, recipient_iso3_code)]
-codes = unique(dat[,c("recipient_name", "recipient_iso3_code")])
+by=.(year, sector_code, recipient_iso3_code)]
 
 dat.grid = expand.grid(
   sector_code=unique(dat$sector_code),
   recipient_iso3_code=unique(dat$recipient_iso3_code),
   year= unique(dat$year)
   )
-dat.grid = merge(dat.grid, codes)
 
 dat = merge(dat, dat.grid, all=T)
 dat$usd_disbursement_crs[which(is.na(dat$usd_disbursement_crs))] = 0
 dat$usd_disbursement_iati[which(is.na(dat$usd_disbursement_iati))] = 0
 
-dat = dat[order(dat$recipient_name, dat$sector_code, dat$year)]
-dat[,"usd_disbursement_crs_t1":=shift(usd_disbursement_crs),by=.(recipient_name, sector_code)]
-dat[,"usd_disbursement_iati_t1":=shift(usd_disbursement_iati),by=.(recipient_name, sector_code)]
+dat = dat[order(dat$recipient_iso3_code, dat$sector_code, dat$year)]
+dat[,"usd_disbursement_crs_t1":=shift(usd_disbursement_crs),by=.(recipient_iso3_code, sector_code)]
+dat[,"usd_disbursement_iati_t1":=shift(usd_disbursement_iati),by=.(recipient_iso3_code, sector_code)]
 
 dat$delta_iati = (dat$usd_disbursement_iati - dat$usd_disbursement_iati_t1)
 
@@ -77,7 +75,7 @@ fit = lm(
     usd_disbursement_iati+ # plus beta0 * IATI this year
     usd_disbursement_crs_t1+ # plus beta1 * CRS last year
     delta_iati+ # plus beta2 * the absolute change in IATI from last year
-    recipient_name+ # Country fixed effects
+    recipient_iso3_code+ # Country fixed effects
     sector_code+ # sector fixed effects
     year # time period
     , data=dat_train)
@@ -102,7 +100,7 @@ dat_agg = dat_test[,.(
   usd_disbursement_iati_fit=sum(usd_disbursement_iati_fit),
   usd_disbursement_iati=sum(usd_disbursement_iati)
 ),
-by=.(year, recipient_name)]
+by=.(year, recipient_iso3_code)]
 rmse(dat_agg$usd_disbursement_crs, dat_agg$usd_disbursement_iati)
 rmse(dat_agg$usd_disbursement_crs, dat_agg$usd_disbursement_iati_fit)
 
@@ -114,7 +112,7 @@ fit = lm(
     usd_disbursement_iati+ # plus beta0 * IATI this year
     usd_disbursement_crs_t1+ # plus beta1 * CRS last year
     delta_iati+ # plus beta2 * the absolute change in IATI from last year
-    recipient_name+ # Country fixed effects
+    recipient_iso3_code+ # Country fixed effects
     sector_code+ # sector fixed effects
     year # time period
   , data=dat_train)
