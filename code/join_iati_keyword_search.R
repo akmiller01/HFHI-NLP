@@ -14,9 +14,12 @@ region_iso3_codes = fread("input/region_mapping.csv")
 region_iso3_code_mapping = region_iso3_codes$recipient_iso3_code
 names(region_iso3_code_mapping) = region_iso3_codes$recipient_code
 crs = subset(crs, false_positive==F)
+crs = subset(crs, sector_code != "930" & aid_type!="E01" & aid_type!="E02")
 
 iati = fread("large_input/full_iati_keyword_2018_2023_zs_expanded_definitions_annotated.csv")
 iati = subset(iati, false_positive==F)
+iati = subset(iati, !startsWith(x_sector_code, "930"))
+
 iati[,c("title_narrative", "description_narrative", "transaction_description_narrative", "text")] = NULL
 gc()
 

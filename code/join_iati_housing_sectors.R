@@ -10,6 +10,7 @@ setwd("../")
 #### End setup ####
 
 crs = fread("large_input/oda_housing_sectors_2010_2022.csv")
+crs = subset(crs, sector_code != "930" & aid_type!="E01" & aid_type!="E02")
 
 region_codes = c(
   "88",

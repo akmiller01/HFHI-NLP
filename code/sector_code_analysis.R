@@ -53,6 +53,7 @@ rotate_x_text_90 = theme(
 
 # Load data
 crs = fread("large_input/oda_housing_sectors_2018_2022.csv")
+crs = subset(crs, sector_code != "930" & aid_type!="E01" & aid_type!="E02")
 iati = fread("input/modeled_crs_iati_housing_sectors.csv")
 iati = subset(iati, year==2023)
 recip_codes = fread("input/oecd_recipient_codes.csv")

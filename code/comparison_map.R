@@ -15,6 +15,7 @@ deflator_2023_to_2022 = 1 / subset(deflators, OECD.name=="TOTAL DAC")$`2023`
 crs = fread("large_input/oda_housing_sectors_2018_2022.csv")
 crs = subset(crs, !endsWith(recipient_name, ", regional"))
 crs = subset(crs, !endsWith(recipient_name, ", unspecified"))
+crs = subset(crs, sector_code != "930" & aid_type!="E01" & aid_type!="E02")
 iati = fread("input/modeled_crs_iati_housing_sectors.csv")
 iati = subset(iati, year==2023)
 
@@ -52,6 +53,7 @@ crs = fread("large_input/full_crs_keyword_2018_2022_zs_expanded_definitions_anno
 crs = subset(crs, false_positive==F)
 crs = subset(crs, !endsWith(recipient_name, ", regional"))
 crs = subset(crs, !endsWith(recipient_name, ", unspecified"))
+crs = subset(crs, sector_code != "930" & aid_type!="E01" & aid_type!="E02")
 iati = fread("input/modeled_crs_iati_keyword_search.csv")
 iati = subset(iati, year==2023)
 
