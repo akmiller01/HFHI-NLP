@@ -77,6 +77,7 @@ code_map = c(
 iati$purpose_name = code_map[as.character(iati$sector_code)]
 iati$usd_disbursement_crs_lwr = pmax(0, iati$usd_disbursement_crs_lwr)
 iati$usd_disbursement_crs = pmax(0, iati$usd_disbursement_crs)
+iati$usd_disbursement_crs_upr = pmax(0, iati$usd_disbursement_crs_upr)
 
 
 # By disbursement year

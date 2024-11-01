@@ -24,6 +24,7 @@ iati$usd_disbursement_crs_upr = iati$usd_disbursement_crs_upr * deflator_2023_to
 
 iati$usd_disbursement_crs_lwr = pmax(0, iati$usd_disbursement_crs_lwr)
 iati$usd_disbursement_crs = pmax(0, iati$usd_disbursement_crs)
+iati$usd_disbursement_crs_upr = pmax(0, iati$usd_disbursement_crs_upr)
 
 oda_by_recipient_year = crs[,.(usd_disbursement_deflated=sum(usd_disbursement_deflated, na.rm=T)), by=.(recipient_iso3_code, year)]
 oda_by_recipient_year$usd_disbursement_lwr = oda_by_recipient_year$usd_disbursement_deflated
